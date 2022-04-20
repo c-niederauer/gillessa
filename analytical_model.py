@@ -1,6 +1,7 @@
 import sympy
 from sympy import Interval, S
 from sympy.plotting import plot
+from sympy.parsing import sympy_parser
 from sympy import lambdify
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,43 +29,47 @@ gamma_MLM_sol = gamma_MLM_sol.args[0].args[0]
 
 expression = sympy.simplify(gamma_MLM_sol)
 
+expression_parsed = sympy.parser
+
 #%%
 f=plt.figure(figsize=[10,6])
 f.subplots_adjust(left=0.15,right=0.85,bottom=0.2,top=0.75)
 f.clear()
 ax=f.add_subplot(111)  
 
-nCurves_Gamma = 10
-nCurves_KDs = 10
-nCurves_KDd = 10
+nCurves_Gamma = 5
+colors_Gamma = plt.cm.viridis_r(np.linspace(0,1,nCurves_Gamma))
 
-#calculate in terms of molecules per m3, m2
-
-colors_Gamma = plt.cm.Greens(np.linspace(0,1,nCurves_Gamma))
-colors_KDd = plt.cm.Blues(np.linspace(0,1,nCurves_KDd))
-colors_KDs = plt.cm.Oranges(np.linspace(0,1,nCurves_KDs))
 
 
 expression = lambdify([K_Dd,K_Ds, gamma_Mtot, c_L], gamma_MLM_sol, 'numpy')
 
-input_c_L = np.linspace(1e-20, 3e-6, 100) #in particles per um3 ?
+input_c_L_uM = np.logspace(-9, 1, 100) #in micromolar   
 
-input_gamma_Mtot = np.linspace(1e-6, 1e-5, nCurves_Gamma)
-input_KDs = np.linspace(1e-10, 1e-7, nCurves_KDs)
-input_KDd = np.linspace(1e-10, 1e-5, nCurves_KDd)
+input_c_L = input_c_L_uM  * 0.6022 #in particles per um3
+
+input_gamma_Mtot = np.logspace(-1.5, -1, nCurves_Gamma) #in particles per um2
+input_KDs = np.logspace(-8, 2, 10)
+input_KDd = np.logspace(-7, -2, 10)
+
 
 for idx, value_gamma_Mtot in enumerate(input_gamma_Mtot):
-    result = expression(1e-6, 1e-7, value_gamma_Mtot, input_c_L)
-    ax.plot(input_c_L, result,  color=colors_Gamma[idx])
+   
+    for idx2, value_K_Dd in enumerate(input_KDd):
+        result = expression(value_K_Dd,value_K_Dd, value_gamma_Mtot, input_c_L)
+        ax.plot(input_c_L, result,  color=colors_Gamma[idx])
 
+    for idx2, value_K_Ds in enumerate(input_KDs):
+        result = expression(1e-5, value_K_Ds, value_gamma_Mtot, input_c_L)
+        ax.plot(input_c_L, result,  color=colors_Gamma[idx])
 
-for idx, value_K_Ds in enumerate(input_KDs):
-    result = expression(1e-6, value_K_Ds, 1e-5, input_c_L)
-    ax.plot(input_c_L, result,  color=colors_KDs[idx])
-
-for idx, value_K_Dd in enumerate(input_KDd):
-    result = expression(value_K_Dd, 1e-7, 1e-5, input_c_L)
-    ax.plot(input_c_L, result,  color=colors_KDd[idx])
 
 ax.set_ylim(bottom = 0)
-ax.set_xscale('symlog')
+ax.set_xlabel('Ligand [nM]')
+
+ytick = ax.get_yticks()
+ax.set_yticks(ytick)
+ax.set_yticklabels((ytick*5329).astype(int))
+ax.set_ylabel('Number of dimers per FOV')
+ax.set_xscale('log')
+
