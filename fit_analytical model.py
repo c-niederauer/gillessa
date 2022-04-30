@@ -51,7 +51,7 @@ xfit = np.logspace(-15,1,100)
 yfit = dimer_func(xfit, *popt)*5329 #convert #/um^2 to #/FOV
 
 ### Plot
-f=plt.figure(figsize=[5,5])
+f=plt.figure(figsize=[4,3])
 f.subplots_adjust(left=0.15,right=0.85,bottom=0.2,top=0.75)
 f.clear()
 ax=f.add_subplot(111)  
@@ -59,7 +59,7 @@ ax=f.add_subplot(111)
 ax.plot(xdata, ydata, 'x', c='k')
 ax.plot(xfit, yfit, c='darkorange')
 ax.set_ylabel('Number of dimers per FOV')
-ax.set_xlabel('log (Ligand concentration) [uM]')
+ax.set_xlabel('Ligand concentration [uM]')
 ax.set_xscale('log')
 ax.set_ylim(bottom=0)
 # ax.set_xlim(left=0)
@@ -69,7 +69,8 @@ ax.set_ylim(bottom=0)
 # xtick_new[0]=0
 # ax.set_xticks(xtick)
 # ax.set_xticklabels(xtick_new)
-
+plt.tight_layout()
+plt.savefig(path + '_fit.png', dpi=200)
 print(f'K_D,d = {popt[0]:.2e} +/- {perr[0]:.2e} \n K_D,s = {popt[1]:.2e} +/- {perr[1]:.2e} \n ')
 
 #%% Residuals
